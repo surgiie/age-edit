@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+set -euo pipefail
+source "$age_edit_cli_path/helpers"
+
+force=false
+secret_name=""
+namespace=""
+while [ $# -gt 0 ]; do
+    case "$1" in
+    -n | --namespace)
+        namespace="$2"
+        shift
+        ;;
+    -f | --force)
+        force=true
+        ;;
+    -h | --help)
+        display_logo
+        echo "  Remove a stored secret by name."
+        echo
+        echo -e "  Usage: age-edit rm <secret-name> [options]\n"
+        echo "  Options:"
+        echo "    -h, --help                            Show this help message."
+        echo "    -f, --force                           Force removal without confirmation."
+        echo "    -n, --namespace                       The namespace the secret is stored in. Default: default"
+        exit 0
+        ;;
+    *)
+        if [ -z "$secret_name" ]; then
+            secret_name="$1"
+        else
+            error "Invalid argument or option: '$1'." 1
+        fi
+        ;;
+    esac
+    shift
+done
+
+context="$(get_cli_context)"
+if [ -z "$namespace" ]; then
+    namespace="default"
+fi
+
+# Validation
+if [ -z "$secret_name" ]; then
+    error "No secret name provided. Please provide a secret name." 1
+fi
+
+secret_name="${secret_name%.age}" # Strip .age if provided
+validate_secret_name "$secret_name"
+secret_path=$(age_edit_context_path "items/$namespace/${secret_name}.age")
+
+if [ ! -f "$secret_path" ]; then
+    error "Secret with name '$secret_name' doesnt exist in namespace '$namespace'." 1
+fi
+
+if [[ $force = false ]] && ! confirm "Are you sure you want to remove '$secret_name' from your stored secrets?"; then
+    warning "Aborted." 1
+fi
+
+rm -f "$secret_path"
+success "Removed secret '$secret_name' in namespace '$namespace' in context '$context'."

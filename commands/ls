@@ -1,0 +1,83 @@
+#!/usr/bin/env bash
+set -euo pipefail
+source "$age_edit_cli_path/helpers"
+
+namespace=""
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+    -n | --namespace)
+        namespace="$2"
+        shift
+        ;;
+    -h | --help)
+        display_logo
+        echo "  List stored secrets."
+        echo
+        echo -e "  Usage: age-edit ls [options] \n"
+        echo "  Options:"
+        echo "    -h, --help                            Show this help message."
+        echo "    -n, --namespace                       List secrets in specific namespace."
+        exit 0
+        ;;
+    *)
+        error "Invalid argument or option: '$1'." 1
+        ;;
+    esac
+    shift
+done
+
+declare -A secrets=()
+context="$(get_cli_context)"
+
+if [ ! -z "$namespace" ]; then
+    age_edit_secrets_path=$(age_edit_context_path "items/$namespace")
+else
+    age_edit_secrets_path=$(age_edit_context_path "items")
+fi
+
+for file in $(find "$age_edit_secrets_path" -type f); do
+    namespace="$(basename $(dirname $file))"
+    name="$(basename $file)"
+    name="${name%.age}"
+    if [[ -z ${secrets[$namespace]+_} ]]; then
+        secrets[$namespace]=""
+    fi
+
+    secrets[$namespace]="${secrets[$namespace]} $name"
+done
+
+if [ ${#secrets[@]} -eq 0 ]; then
+    warning "No secret items found in context '$(green_bold $context)'." 1
+fi
+
+for ns in "${!secrets[@]}"; do
+    items=()
+    for item in ${secrets[$ns]}; do
+        items+=("$item")
+    done
+
+    max_len=0
+    item=""
+    border=""
+    min_width=40
+
+    # Find the longest string
+    for item in "${items[@]}"; do
+        ((${#item} > max_len)) && max_len=${#item}
+    done
+
+    ((max_len < min_width)) && max_len=$min_width
+    # Build border
+    border="  +-$(printf '%*s' "$max_len" '' | tr ' ' '-')-+"
+    # Print table
+    echo "$border"
+    echo "  | $(printf '%-*s' "$max_len" "Namespace: $ns") |"
+    echo "$border"
+    for item in "${items[@]}"; do
+        printf "  | %-${max_len}s |\n" "$item"
+    done
+    echo "$border"
+
+    echo -e "\n"
+done

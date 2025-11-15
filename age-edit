@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# The extension version.
+export AGE_EDIT_VERSION="v0.1.0"
+# The path to the extension.
+export age_edit_cli_path="$(
+    cd -- "$(dirname "$0")" >/dev/null 2>&1
+    pwd -P
+)"
+
+display_global_help() {
+    display_logo
+    echo -e "  Manage secrets within your editor.\n"
+
+    echo "  Usage: age-edit <command> [arguments] [options]"
+    echo
+    echo -e "  Available Commands:\n"
+    echo "  new         Create a new secret."
+    echo "  ls          List stored secrets."
+    echo "  edit        Edit a stored secret."
+    echo "  rm          Remove a stored secret."
+    echo "  get         Output a decrypted secret to console."
+    echo "  help        Display this help message."
+    echo "  version     Display the version of the cli."
+    echo
+    echo "  Run 'age-edit <command> --help' for more information on a command."
+}
+
+source "${age_edit_cli_path}/helpers"
+if ! command -v age 2>&1 >/dev/null; then
+    error "age is required but not installed. Please install age and try again. See: https://github.com/FiloSottile/age" 1
+fi
+
+command="${1:-}"
+if [ -z "$command" ] || [ "$command" = "--help" ] || [ "$command" = "help" ]; then
+    display_global_help
+    exit 1
+fi
+
+# Delegate to the appropriate command.
+case $command in
+"--version" | "version")
+    echo "$AGE_EDIT_VERSION"
+    exit 0
+    ;;
+"rm")
+    shift
+    "${age_edit_cli_path}/commands/rm" "$@"
+    ;;
+"ls")
+    shift
+    "${age_edit_cli_path}/commands/ls" "$@"
+    ;;
+"edit")
+    shift
+    "${age_edit_cli_path}/commands/edit" "$@"
+    ;;
+"new")
+    shift
+    "${age_edit_cli_path}/commands/new" "$@"
+    ;;
+"get")
+    shift
+    "${age_edit_cli_path}/commands/get" "$@"
+    ;;
+*)
+    echo "Unknown command: $command"
+    display_global_help
+    exit 1
+    ;;
+esac

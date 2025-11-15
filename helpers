@@ -1,0 +1,208 @@
+#!/bin/bash
+# Dispalys the logo
+display_logo() {
+    YELLOW='\033[1;33m'
+    NC='\033[0m'
+    echo -e "${YELLOW}
+  ▄▀█ █▀▀ █▀▀ ▄▄ █▀▀ █▀▄ █ ▀█▀
+  █▀█ █▄█ ██▄    ██▄ █▄▀ █  █
+${NC}"
+}
+## remove trailing character.
+remove_trailing() {
+    value="$1"
+    char="$2"
+    echo ${value%"$char"}
+}
+## make a sha1 hash from a string.
+make_sha() {
+    value="$1"
+    echo -n "$value" | sha1sum | cut -d ' ' -f1
+}
+## Confirm a user action.
+confirm() {
+    echo -n "$(yellow_bold [CONFIRM]): $1 [y/n]: "
+    read -r -p "" response
+    [[ "$response" == [Yy] ]]
+}
+
+## Get key for encryption from the environment variables
+get_key_from_env_vars() {
+    context="$(get_cli_context)"
+    context=$(echo $context | tr '[:lower:]' '[:upper:]')
+    context_var="AGE_EDIT_${context}_KEY"
+    set +u
+    key="${!context_var}"
+    set -u
+    if [ -z "$key" ]; then
+        key="${AGE_EDIT_KEY:-}"
+    fi
+
+    echo $key
+
+}
+## get the current context.
+get_cli_context() {
+    context="${AGE_EDIT_CONTEXT:-default}"
+    echo $context
+}
+
+## genearate a path relative to the project .age-edit/context/<context> dir.
+age_edit_context_path() {
+    path="${1:-/}"
+    context="$(get_cli_context)"
+    base="$HOME/.age-edit/contexts/$context"
+    path="$base/$path"
+    echo $(remove_trailing "$path" "/")
+}
+
+## genearate a path relative to the project /tmp/.age-edit dir.
+tmp_path() {
+    path="${1:-/}"
+    base="/tmp/.age-edit"
+    path="$base/$path"
+    echo $(remove_trailing "$path" "/")
+}
+
+## genearate a path relative to the project .age-edit dir.
+age_edit_secrets_path() {
+    path="${1:-/}"
+    base="$HOME/.age-edit"
+    path="$base/$path"
+    echo $(remove_trailing "$path" "/")
+}
+
+## generate a path relative to the root of the cli directory.
+age_edit_cli_path() {
+    path="${1:-/}"
+    base="$age_edit_cli_path"
+    path="$base/$path"
+    echo $(remove_trailing "$path" "/")
+}
+
+# Helper for printing in color
+print_in_color() {
+    local color="$1"
+    shift
+    if [[ -z ${NO_COLOR+x} ]]; then
+        printf "$color%b\e[0m\n" "$*"
+    else
+        printf "%b\n" "$*"
+    fi
+}
+
+# Color text helpers
+red_bold() { print_in_color "\e[1;31m" "$*"; }
+green_bold() { print_in_color "\e[1;32m" "$*"; }
+yellow_bold() { print_in_color "\e[1;33m" "$*"; }
+cyan_bold() { print_in_color "\e[1;36m" "$*"; }
+
+# Print error message and optionally exit
+error() {
+    exit_code="${2:-}"
+    should_print="${3:-true}"
+    if [ "$should_print" = true ]; then
+        echo "$(red_bold [ERROR]): $1"
+    fi
+    if [ ! -z "$exit_code" ]; then
+        exit $exit_code
+    fi
+}
+# Print dry run message and optionally exit
+dry_run() {
+    exit_code="${2:-}"
+    should_print="${3:-true}"
+    if [ "$should_print" = true ]; then
+        echo -e "$(yellow_bold [DRY RUN]): $1"
+    fi
+    if [ ! -z "$exit_code" ]; then
+        exit $exit_code
+    fi
+}
+# Print warning message and optionally exit
+warning() {
+    exit_code="${2:-}"
+    should_print="${3:-true}"
+    if [ "$should_print" = true ]; then
+        echo -e "$(yellow_bold [WARNING]): $1"
+    fi
+    if [ ! -z "$exit_code" ]; then
+        exit $exit_code
+    fi
+}
+# Print success message
+success() {
+    should_print="${2:-true}"
+    if [ "$should_print" = true ]; then
+        echo -e "$(green_bold [SUCCESS]): $1"
+    fi
+}
+# Print info message
+info() {
+    should_print="${3:-true}"
+    if [ "$should_print" = true ]; then
+        echo -e "$(cyan_bold [INFO]): $1"
+    fi
+}
+# Encrypt file with age
+encrypt_file() {
+    local file_path="$1"
+    local key="$2"
+    local use_passphrase="$3"
+
+    if [ "$use_passphrase" = true ]; then
+        # Passphrase mode - prompt for passphrase
+        age -p -a <"$file_path"
+    else
+        # Key-based mode - check if key is a file path or public key
+        if [ -f "$key" ]; then
+            # It's a file path to an identity file, extract public key
+            local pubkey=$(age-keygen -y "$key" 2>/dev/null)
+            if [ -z "$pubkey" ]; then
+                error "Failed to extract public key from identity file: $key" 1
+                return 1
+            fi
+            age -r "$pubkey" -a <"$file_path"
+        elif [[ "$key" == age1* ]]; then
+            # It's already a public key
+            age -r "$key" -a <"$file_path"
+        else
+            error "Invalid key format. Must be an age public key (age1...) or path to identity file." 1
+            return 1
+        fi
+    fi
+}
+
+# Validate secret name format (slug or snake_case)
+validate_secret_name() {
+    local name="$1"
+    # Allow lowercase letters, numbers, hyphens, and underscores only
+    # Must start with a letter
+    if [[ ! "$name" =~ ^[a-z][a-z0-9_-]*$ ]]; then
+        error "Invalid secret name format. Secret names must:
+  - Start with a lowercase letter
+  - Contain only lowercase letters, numbers, hyphens (-), and underscores (_)
+  - Examples: 'db-password', 'api_key', 'prod-db-url'" 1
+        return 1
+    fi
+    return 0
+}
+
+# Decrypt file with age
+decrypt_file() {
+    local file_path="$1"
+    local key="$2"
+    local use_passphrase="$3"
+
+    if [ "$use_passphrase" = true ]; then
+        # Passphrase mode - prompts for passphrase interactively
+        age -d <"$file_path"
+    else
+        # Key-based mode - use identity file
+        if [ ! -f "$key" ]; then
+            error "Identity file not found: $key" 1
+            return 1
+        fi
+        age -d -i "$key" <"$file_path"
+    fi
+}
