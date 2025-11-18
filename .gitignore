@@ -1,0 +1,18 @@
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing and development
+test/
+*.log
+
+# Age encrypted test files (if any)
+*.age
+
+# Temporary files
+tmp/
+.tmp/

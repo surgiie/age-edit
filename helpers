@@ -1,5 +1,5 @@
 #!/bin/bash
-# Dispalys the logo
+# Displays the logo
 display_logo() {
     YELLOW='\033[1;33m'
     NC='\033[0m'
@@ -12,72 +12,37 @@ ${NC}"
 remove_trailing() {
     value="$1"
     char="$2"
-    echo ${value%"$char"}
+    echo "${value%"$char"}"
 }
-## make a sha1 hash from a string.
-make_sha() {
-    value="$1"
-    echo -n "$value" | sha1sum | cut -d ' ' -f1
-}
+
 ## Confirm a user action.
 confirm() {
     echo -n "$(yellow_bold [CONFIRM]): $1 [y/n]: "
-    read -r -p "" response
+    read -r response
     [[ "$response" == [Yy] ]]
 }
 
-## Get key for encryption from the environment variables
-get_key_from_env_vars() {
-    context="$(get_cli_context)"
-    context=$(echo $context | tr '[:lower:]' '[:upper:]')
-    context_var="AGE_EDIT_${context}_KEY"
-    set +u
-    key="${!context_var}"
-    set -u
-    if [ -z "$key" ]; then
-        key="${AGE_EDIT_KEY:-}"
-    fi
-
-    echo $key
-
-}
 ## get the current context.
 get_cli_context() {
     context="${AGE_EDIT_CONTEXT:-default}"
-    echo $context
+    echo "$context"
 }
 
-## genearate a path relative to the project .age-edit/context/<context> dir.
+## generate a path relative to the project .age-edit/context/<context> dir.
 age_edit_context_path() {
     path="${1:-/}"
     context="$(get_cli_context)"
     base="$HOME/.age-edit/contexts/$context"
     path="$base/$path"
-    echo $(remove_trailing "$path" "/")
+    echo "$(remove_trailing "$path" "/")"
 }
 
-## genearate a path relative to the project /tmp/.age-edit dir.
+## generate a path relative to the project /tmp/.age-edit dir.
 tmp_path() {
     path="${1:-/}"
     base="/tmp/.age-edit"
     path="$base/$path"
-    echo $(remove_trailing "$path" "/")
-}
-
-## genearate a path relative to the project .age-edit dir.
-age_edit_secrets_path() {
-    path="${1:-/}"
-    base="$HOME/.age-edit"
-    path="$base/$path"
-    echo $(remove_trailing "$path" "/")
-}
-
-## generate a path relative to the root of the cli directory.
-age_edit_cli_path() {
-    path="${1:-/}"
-    base="$age_edit_cli_path"
-    path="$base/$path"
-    echo $(remove_trailing "$path" "/")
+    echo "$(remove_trailing "$path" "/")"
 }
 
 # Helper for printing in color
@@ -104,7 +69,7 @@ error() {
     if [ "$should_print" = true ]; then
         echo "$(red_bold [ERROR]): $1"
     fi
-    if [ ! -z "$exit_code" ]; then
+    if [ -n "$exit_code" ]; then
         exit $exit_code
     fi
 }
@@ -115,7 +80,7 @@ dry_run() {
     if [ "$should_print" = true ]; then
         echo -e "$(yellow_bold [DRY RUN]): $1"
     fi
-    if [ ! -z "$exit_code" ]; then
+    if [ -n "$exit_code" ]; then
         exit $exit_code
     fi
 }
@@ -126,7 +91,7 @@ warning() {
     if [ "$should_print" = true ]; then
         echo -e "$(yellow_bold [WARNING]): $1"
     fi
-    if [ ! -z "$exit_code" ]; then
+    if [ -n "$exit_code" ]; then
         exit $exit_code
     fi
 }
@@ -139,7 +104,7 @@ success() {
 }
 # Print info message
 info() {
-    should_print="${3:-true}"
+    should_print="${2:-true}"
     if [ "$should_print" = true ]; then
         echo -e "$(cyan_bold [INFO]): $1"
     fi

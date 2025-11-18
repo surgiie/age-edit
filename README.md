@@ -8,7 +8,40 @@ Manage your secrets within your editor using [age](https://github.com/FiloSottil
 
 ### Encryption Methods
 
-By default this cli uses `age` with `--passphrase` when encrypting and decrypting. If you want to use key pair encryption identity file instead, use `--key` flags when calling commands.
+By default this CLI uses `age` with `--passphrase` when encrypting and decrypting. If you want to use key pair encryption identity file instead, use `--key` flags when calling commands.
+
+#### Passphrase Encryption (Default)
+
+```bash
+# Create a secret with passphrase encryption
+age-edit new my-secret
+```
+
+You'll be prompted for a passphrase when encrypting and decrypting.
+
+#### Key-Based Encryption
+
+First, generate an age key pair if you don't have one:
+
+```bash
+age-keygen -o ~/.age/key.txt
+```
+
+Then use the `--key` flag with commands:
+
+```bash
+# Create a secret with key-based encryption (using identity file)
+age-edit new my-secret --key ~/.age/key.txt
+
+# Or use a public key directly
+age-edit new my-secret --key age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p
+
+# Edit an existing secret with key-based decryption
+age-edit edit my-secret --key ~/.age/key.txt
+
+# Get a secret with key-based decryption
+age-edit get my-secret --key ~/.age/key.txt
+```
 
 ## Dependencies
 
@@ -24,9 +57,48 @@ install_dir="$HOME/.local/bin/age-edit" # edit to liking.
 git clone -b $version https://github.com/surgiie/age-edit.git "$install_dir"
 ```
 
-Then add `$install_dir/age-edit` to `$PATH`.
+Then add the `age-edit` script to your `$PATH`:
+
+```bash
+# Add to your .bashrc or .zshrc
+export PATH="$HOME/.local/bin/age-edit:$PATH"
+```
+
+### Optional: Shell Completion
+
+To enable bash completion for better command-line experience:
+
+```bash
+# Add to your .bashrc
+source "$HOME/.local/bin/age-edit/completions/age-edit.bash"
+```
+
+This will enable tab completion for commands, options, and even secret names!
 
 ## Usage
+
+### Quick Reference
+
+```bash
+# Basic operations
+age-edit new my-secret              # Create a new secret
+age-edit edit my-secret             # Edit an existing secret
+age-edit get my-secret              # View a secret
+age-edit ls                         # List all secrets
+age-edit rm my-secret               # Remove a secret
+
+# With namespaces
+age-edit new db-pass --namespace prod
+age-edit ls --namespace prod
+
+# With file extensions (for syntax highlighting)
+age-edit new config --ext yaml
+age-edit new script --ext sh
+
+# With key-based encryption
+age-edit new secret --key ~/.age/key.txt
+age-edit get secret --key ~/.age/key.txt
+```
 
 ### Specify CLI Context
 
@@ -70,7 +142,7 @@ age-edit get my-secret
 
 ### Update Secret
 
-To edit and update a secreti in your editor, run the `edit` command:
+To edit and update a secret in your editor, run the `edit` command:
 
 ```bash
 age-edit edit my-secret-name
@@ -103,5 +175,47 @@ Namespaces are a way to group secrets. By default, all secrets are created in th
 ```bash
 # Create a secret in a different namespace
 age-edit new mysecret --namespace work
+
+# List secrets in a specific namespace
+age-edit ls --namespace work
+
+# Get a secret from a specific namespace
+age-edit get mysecret --namespace work
+
+# Edit a secret in a specific namespace
+age-edit edit mysecret --namespace work
+
+# Remove a secret from a specific namespace
+age-edit rm mysecret --namespace work
 ```
 
+### File Extensions for Syntax Highlighting
+
+You can specify a file extension when creating or editing secrets to enable syntax highlighting in your editor:
+
+```bash
+# Create a YAML secret with syntax highlighting
+age-edit new db-config --ext yaml
+
+# Create a JSON secret
+age-edit new api-keys --ext json
+
+# Edit with a different extension
+age-edit edit my-script --ext sh
+```
+
+## Security Considerations
+
+- Always use strong passphrases or properly secured identity files
+- Identity files should have restricted permissions (e.g., `chmod 600 ~/.age/key.txt`)
+- Temporary decrypted files are automatically cleaned up on exit
+- The `~/.age-edit` directory stores encrypted secrets - ensure proper filesystem permissions
+- Consider using key-based encryption for better security in automated environments
+
+## Contributing
+
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute to this project.
+
+## License
+
+See [LICENSE.md](LICENSE.md) for details.

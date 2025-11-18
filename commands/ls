@@ -30,15 +30,15 @@ done
 declare -A secrets=()
 context="$(get_cli_context)"
 
-if [ ! -z "$namespace" ]; then
-    age_edit_secrets_path=$(age_edit_context_path "items/$namespace")
+if [ -n "$namespace" ]; then
+    secrets_path=$(age_edit_context_path "items/$namespace")
 else
-    age_edit_secrets_path=$(age_edit_context_path "items")
+    secrets_path=$(age_edit_context_path "items")
 fi
 
-for file in $(find "$age_edit_secrets_path" -type f); do
-    namespace="$(basename $(dirname $file))"
-    name="$(basename $file)"
+for file in $(find "$secrets_path" -type f 2>/dev/null); do
+    namespace="$(basename "$(dirname "$file")")"
+    name="$(basename "$file")"
     name="${name%.age}"
     if [[ -z ${secrets[$namespace]+_} ]]; then
         secrets[$namespace]=""
@@ -48,7 +48,7 @@ for file in $(find "$age_edit_secrets_path" -type f); do
 done
 
 if [ ${#secrets[@]} -eq 0 ]; then
-    warning "No secret items found in context '$(green_bold $context)'." 1
+    warning "No secret items found in context '$(green_bold "$context")'." 1
 fi
 
 for ns in "${!secrets[@]}"; do

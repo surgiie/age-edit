@@ -45,9 +45,8 @@ while [ $# -gt 0 ]; do
     shift
 done
 
-if [ -z $EDITOR ]; then
-    error "No EDITOR environment variable set. Please set it to your preferred text editor."
-    exit 1
+if [ -z "${EDITOR:-}" ]; then
+    error "No EDITOR environment variable set. Please set it to your preferred text editor." 1
 fi
 
 if [ -z "$secret_name" ]; then
@@ -71,7 +70,7 @@ fi
 mkdir -p "$(dirname "$secret_path")"
 
 # if a key is provided, validate it
-if [ ! -z "$key" ]; then
+if [ -n "$key" ]; then
     if [ -f "$key" ]; then
         if ! age-keygen -y "$key" &>/dev/null; then
             error "Invalid identity file: $key" 1
@@ -87,8 +86,8 @@ if [ ! -z "$key" ]; then
     fi
 fi
 
-rm -rf tmp_path
-mkdir -p "$(tmp_path $context)"
+rm -rf "$(tmp_path)"
+mkdir -p "$(tmp_path "$context")"
 tmp_file=$(mktemp $(tmp_path "$context/XXXXXX.$ext"))
 trap 'rm -f "$tmp_file"' EXIT SIGINT SIGTERM
 
@@ -103,7 +102,6 @@ info "Encrypting:"
 encrypted_contents=$(encrypt_file "$tmp_file" "$key" "$use_passphrase")
 printf "\033[1A\033[2K"
 
-mkdir -p "$(dirname "$secret_path")"
 echo "$encrypted_contents" >"$secret_path"
 
 success "Generated secret '$secret_name' in namespace '$namespace' in context '$context'."
