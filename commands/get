@@ -64,7 +64,7 @@ if [ ! -f "$secret_path" ]; then
 fi
 
 # Validate key if provided
-if [ ! -z "$key" ]; then
+if [ -n "$key" ]; then
     if [ -f "$key" ]; then
         if ! age-keygen -y "$key" &>/dev/null; then
             error "Invalid identity file: $key" 1

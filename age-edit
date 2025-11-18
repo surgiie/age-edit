@@ -28,14 +28,14 @@ display_global_help() {
 }
 
 source "${age_edit_cli_path}/helpers"
-if ! command -v age 2>&1 >/dev/null; then
+if ! command -v age >/dev/null 2>&1; then
     error "age is required but not installed. Please install age and try again. See: https://github.com/FiloSottile/age" 1
 fi
 
 command="${1:-}"
 if [ -z "$command" ] || [ "$command" = "--help" ] || [ "$command" = "help" ]; then
     display_global_help
-    exit 1
+    exit 0
 fi
 
 # Delegate to the appropriate command.
