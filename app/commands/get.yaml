@@ -1,0 +1,20 @@
+name: get
+alias: g
+help: Output a decrypted secret.
+filename: commands/src/get.sh
+args:
+- name: secret_name
+  help: The name of the secret to get
+  required: true
+
+flags:
+- long: --namespace
+  short: -n
+  arg: namespace
+  help: The namespace containing the secret
+  default: default
+- long: --key
+  short: -k
+  arg: key
+  help: Path to identity file for key-based decryption
+

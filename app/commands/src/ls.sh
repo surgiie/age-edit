@@ -1,31 +1,7 @@
-#!/usr/bin/env bash
-set -euo pipefail
-source "$age_edit_cli_path/helpers"
+#!/bin/bash
 
-namespace=""
-
-while [ $# -gt 0 ]; do
-    case "$1" in
-    -n | --namespace)
-        namespace="$2"
-        shift
-        ;;
-    -h | --help)
-        display_logo
-        echo "  List stored secrets."
-        echo
-        echo -e "  Usage: age-edit ls [options] \n"
-        echo "  Options:"
-        echo "    -h, --help                            Show this help message."
-        echo "    -n, --namespace                       List secrets in specific namespace."
-        exit 0
-        ;;
-    *)
-        error "Invalid argument or option: '$1'." 1
-        ;;
-    esac
-    shift
-done
+# Variables from bashly args
+namespace="${args[--namespace]:-}"
 
 declare -A secrets=()
 context="$(get_cli_context)"

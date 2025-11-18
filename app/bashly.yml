@@ -1,0 +1,13 @@
+name: age-edit
+help: Manage secrets within your editor
+version: 0.1.0
+commands:
+  - import: app/commands/new.yaml
+  - import: app/commands/edit.yaml
+  - import: app/commands/ls.yaml
+  - import: app/commands/rm.yaml
+  - import: app/commands/get.yaml
+environment_variables:
+- name: AGE_EDIT_CONTEXT
+  help: The context for managing different sets of secrets
+  default: default

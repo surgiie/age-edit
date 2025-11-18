@@ -6,6 +6,17 @@ Manage your secrets within your editor using [age](https://github.com/FiloSottil
 
 `age-edit` is a small bash command-line that encrypts content with [age](https://github.com/FiloSottile/age) but decrypts content for editing within your preferred editor and then saves back as encrypted content with `age`.
 
+## Installation
+
+Download the standalone `age-edit` script:
+
+```bash
+version="main" # or specify a tag/branch
+install_dir="$HOME/.local/bin" # customize as needed, must be in your PATH
+curl -o "$install_dir/age-edit" "https://raw.githubusercontent.com/surgiie/age-edit/$version/age-edit"
+chmod +x "$install_dir/age-edit"
+```
+
 ### Encryption Methods
 
 By default this CLI uses `age` with `--passphrase` when encrypting and decrypting. If you want to use key pair encryption identity file instead, use `--key` flags when calling commands.
@@ -45,35 +56,20 @@ age-edit get my-secret --key ~/.age/key.txt
 
 ## Dependencies
 
-- [age](https://github.com/FiloSottile/age)
+- [age](https://github.com/FiloSottile/age) - Required for encryption/decryption
 
-## Installation
+### For Developers
 
-Clone repository:
+This project uses [bashly](https://bashly.dannyb.co/) to generate the CLI. If you want to modify the code:
 
-```bash
-version="main"
-install_dir="$HOME/.local/bin/age-edit" # edit to liking.
-git clone -b $version https://github.com/surgiie/age-edit.git "$install_dir"
-```
-
-Then add the `age-edit` script to your `$PATH`:
+1. Clone the repository
+2. Make your changes to `bashly.yml` or files in the `app/` directory
+3. Generate the CLI:
 
 ```bash
-# Add to your .bashrc or .zshrc
-export PATH="$HOME/.local/bin/age-edit:$PATH"
+./generate.sh
+
 ```
-
-### Optional: Shell Completion
-
-To enable bash completion for better command-line experience:
-
-```bash
-# Add to your .bashrc
-source "$HOME/.local/bin/age-edit/completions/age-edit.bash"
-```
-
-This will enable tab completion for commands, options, and even secret names!
 
 ## Usage
 
