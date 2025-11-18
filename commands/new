@@ -45,9 +45,8 @@ while [ $# -gt 0 ]; do
     shift
 done
 
-if [ -z $EDITOR ]; then
-    error "No EDITOR environment variable set. Please set it to your preferred text editor."
-    exit 1
+if [ -z "${EDITOR:-}" ]; then
+    error "No EDITOR environment variable set. Please set it to your preferred text editor." 1
 fi
 
 if [ -z "$secret_name" ]; then
@@ -87,8 +86,8 @@ if [ ! -z "$key" ]; then
     fi
 fi
 
-rm -rf tmp_path
-mkdir -p "$(tmp_path $context)"
+rm -rf "$(tmp_path)"
+mkdir -p "$(tmp_path "$context")"
 tmp_file=$(mktemp $(tmp_path "$context/XXXXXX.$ext"))
 trap 'rm -f "$tmp_file"' EXIT SIGINT SIGTERM
 
