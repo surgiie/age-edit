@@ -1,0 +1,38 @@
+#-------------------------------------------------------------------------------
+# BASHLY SETTINGS
+#-------------------------------------------------------------------------------
+# The path containing the bashly source files
+source_dir: app
+
+# The path to bashly.yml
+config_path: "%{source_dir}/bashly.yml"
+
+# The path to use for creating the bash script
+target_dir: .
+
+# The path to use for common library files, relative to source_dir
+lib_dir: lib
+
+# Configure the bash options that will be added to the initialize function:
+strict: true
+
+# When true, the generated script will use tab indentation instead of spaces
+# (every 2 leading spaces will be converted to a tab character)
+tab_indent: true
+
+
+# When true, the generated script will consider any argument in the form of
+# `-abc` as if it is `-a -b -c`.
+compact_short_flags: true
+
+# When true, the generated script will consider any argument in the form of
+# `--flag=value` and `-f=value` as if it is `--flag value` and `-f value`
+# respectively.
+conjoined_flag_args: true
+
+# Show command examples (if any) whenever the user does not provide the
+# required arguments
+show_examples_on_error: false
+# `bashly generate --env production` when the production version is needed.
+env: production
+

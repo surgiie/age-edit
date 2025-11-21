@@ -1,0 +1,24 @@
+name: new
+alias: n
+help: Create a secret.
+filename: commands/src/new.sh
+args:
+- name: secret_name
+  help: The name of the secret to create
+  required: true
+flags:
+- long: --namespace
+  short: -n
+  arg: namespace
+  help: The namespace directory to store secret in
+  default: default
+- long: --key
+  short: -k
+  arg: key
+  help: Path to identity file for key-based decryption. Can alternatively provide age public key (age1...)
+- long: --ext
+  short: -e
+  arg: ext
+  help: The file extension for the file when editing in editor. Use as way to improve syntax highlighting in your editor
+  default: txt
+

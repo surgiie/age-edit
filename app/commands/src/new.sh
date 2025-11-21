@@ -1,65 +1,21 @@
-#!/usr/bin/env bash
-set -euo pipefail
-source "$age_edit_cli_path/helpers"
-key=""
-ext="txt"
-secret_name=""
-namespace=""
+secret_name="${args[secret_name]}"
+namespace="${args[--namespace]}"
+key="${args[--key]:-}"
+ext="${args[--ext]}"
 use_passphrase=true
 
-while [ $# -gt 0 ]; do
-    case "$1" in
-    -k | --key)
-        key="$2"
-        use_passphrase=false
-        shift
-        ;;
-    -n | --namespace)
-        namespace="$2"
-        shift
-        ;;
-    -e | --ext)
-        ext="$2"
-        shift
-        ;;
-    -h | --help)
-        display_logo
-        echo "  Create a new secret."
-        echo
-        echo -e "  Usage: age-edit new <secret-name> [options]\n"
-        echo "  Options:"
-        echo "    -h, --help                            Show this help message."
-        echo "    -n, --namespace                       The namespace directory to store secret in. Default: default"
-        echo "    -k, --key                             Path to identity file for key-based decryption. Can alternatively provide age public key (age1...)."
-        echo "    -e, --ext                             The file extension for the file when editing in editor. Use as way to improve syntax highlighting in your editor. Default: $ext"
-        exit 0
-        ;;
-    *)
-        if [ -z "$secret_name" ]; then
-            secret_name="$1"
-        else
-            error "Invalid argument or option: '$1'." 1
-        fi
-        ;;
-    esac
-    shift
-done
+# Set use_passphrase based on whether key was provided
+if [ -n "$key" ]; then
+    use_passphrase=false
+fi
 
 if [ -z "${EDITOR:-}" ]; then
     error "No EDITOR environment variable set. Please set it to your preferred text editor." 1
 fi
 
-if [ -z "$secret_name" ]; then
-    error "No secret name provided. Please provide a secret name." 1
-fi
-
 # Validate secret name format
 validate_secret_name "$secret_name"
 context="$(get_cli_context)"
-
-if [ -z "$namespace" ]; then
-    namespace="default"
-fi
 
 secret_path=$(age_edit_context_path "items/$namespace/$secret_name.age")
 

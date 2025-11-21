@@ -1,0 +1,24 @@
+name: edit
+alias: e
+help: Edit a secret.
+filename: commands/src/edit.sh
+args:
+- name: secret_name
+  help: The name of the secret to edit
+  required: true
+
+flags:
+- long: --namespace
+  short: -n
+  arg: namespace
+  help: The namespace directory to store secret in
+  default: default
+- long: --key
+  short: -k
+  arg: key
+  help: Path to identity file for key-based decryption
+- long: --ext
+  short: -e
+  arg: ext
+  help: The file extension for the temporary file. Use as way to improve syntax highlighting in your editor
+  default: txt

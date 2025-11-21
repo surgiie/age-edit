@@ -1,13 +1,15 @@
 #!/bin/bash
+
 # Displays the logo
 display_logo() {
     YELLOW='\033[1;33m'
     NC='\033[0m'
     echo -e "${YELLOW}
-  ▄▀█ █▀▀ █▀▀ ▄▄ █▀▀ █▀▄ █ ▀█▀
-  █▀█ █▄█ ██▄    ██▄ █▄▀ █  █
+▄▀█ █▀▀ █▀▀ ▄▄ █▀▀ █▀▄ █ ▀█▀
+█▀█ █▄█ ██▄    ██▄ █▄▀ █  █
 ${NC}"
 }
+
 ## remove trailing character.
 remove_trailing() {
     value="$1"
@@ -73,6 +75,7 @@ error() {
         exit $exit_code
     fi
 }
+
 # Print dry run message and optionally exit
 dry_run() {
     exit_code="${2:-}"
@@ -84,6 +87,7 @@ dry_run() {
         exit $exit_code
     fi
 }
+
 # Print warning message and optionally exit
 warning() {
     exit_code="${2:-}"
@@ -95,6 +99,7 @@ warning() {
         exit $exit_code
     fi
 }
+
 # Print success message
 success() {
     should_print="${2:-true}"
@@ -102,6 +107,7 @@ success() {
         echo -e "$(green_bold [SUCCESS]): $1"
     fi
 }
+
 # Print info message
 info() {
     should_print="${2:-true}"
@@ -109,6 +115,7 @@ info() {
         echo -e "$(cyan_bold [INFO]): $1"
     fi
 }
+
 # Encrypt file with age
 encrypt_file() {
     local file_path="$1"

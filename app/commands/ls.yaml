@@ -1,0 +1,9 @@
+name: ls
+alias: l
+help: List secrets.
+filename: commands/src/ls.sh
+flags:
+- long: --namespace
+  short: -n
+  arg: namespace
+  help: List secrets in specific namespace
